@@ -28,6 +28,10 @@ class RequestHandler:
             "get_pipeline_state": self._handle_get_pipeline_state,
             "list_captures": self._handle_list_captures,
             "open_capture": self._handle_open_capture,
+            "export_texture_to_png": self._handle_export_texture_to_png,
+            "export_texture_to_jpeg": self._handle_export_texture_to_jpeg,
+            "get_texture_format_info": self._handle_get_texture_format_info,
+            "analyze_texture": self._handle_analyze_texture,
         }
 
     def handle(self, request):
@@ -183,3 +187,71 @@ class RequestHandler:
         if capture_path is None:
             raise ValueError("capture_path is required")
         return self.facade.open_capture(capture_path)
+
+    def _handle_export_texture_to_png(self, params):
+        """Handle export_texture_to_png request"""
+        resource_id = params.get("resource_id")
+        output_path = params.get("output_path")
+        if resource_id is None:
+            raise ValueError("resource_id is required")
+        if output_path is None:
+            raise ValueError("output_path is required")
+        
+        mip = params.get("mip", 0)
+        slice_idx = params.get("slice", 0)
+        sample = params.get("sample", 0)
+        depth_slice = params.get("depth_slice")
+        convert_srgb = params.get("convert_srgb", True)
+        quality = params.get("quality", 95)
+        
+        return self.facade.export_texture_to_png(
+            resource_id, output_path, mip, slice_idx, sample, 
+            depth_slice, convert_srgb, quality
+        )
+
+    def _handle_export_texture_to_jpeg(self, params):
+        """Handle export_texture_to_jpeg request"""
+        resource_id = params.get("resource_id")
+        output_path = params.get("output_path")
+        if resource_id is None:
+            raise ValueError("resource_id is required")
+        if output_path is None:
+            raise ValueError("output_path is required")
+        
+        mip = params.get("mip", 0)
+        slice_idx = params.get("slice", 0)
+        sample = params.get("sample", 0)
+        depth_slice = params.get("depth_slice")
+        convert_srgb = params.get("convert_srgb", True)
+        quality = params.get("quality", 90)
+        
+        return self.facade.export_texture_to_jpeg(
+            resource_id, output_path, mip, slice_idx, sample,
+            depth_slice, convert_srgb, quality
+        )
+
+    def _handle_get_texture_format_info(self, params):
+        """Handle get_texture_format_info request"""
+        resource_id = params.get("resource_id")
+        if resource_id is None:
+            raise ValueError("resource_id is required")
+        return self.facade.get_texture_format_info(resource_id)
+
+    def _handle_analyze_texture(self, params):
+        """Handle analyze_texture request"""
+        resource_id = params.get("resource_id")
+        if resource_id is None:
+            raise ValueError("resource_id is required")
+        
+        mip = params.get("mip", 0)
+        slice_idx = params.get("slice", 0)
+        sample = params.get("sample", 0)
+        depth_slice = params.get("depth_slice")
+        analysis_type = params.get("analysis_type", "basic")
+        export_image = params.get("export_image", False)
+        output_dir = params.get("output_dir")
+        
+        return self.facade.analyze_texture(
+            resource_id, mip, slice_idx, sample, depth_slice,
+            analysis_type, export_image, output_dir
+        )

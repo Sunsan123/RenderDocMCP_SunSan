@@ -4,6 +4,7 @@ FastMCP 2.0 server providing access to RenderDoc capture data.
 """
 
 from typing import Literal
+from pathlib import Path
 
 from fastmcp import FastMCP
 
@@ -278,6 +279,166 @@ def get_pipeline_state(event_id: int) -> dict:
     - Viewports and input assembly state
     """
     return bridge.call("get_pipeline_state", {"event_id": event_id})
+
+
+@mcp.tool
+def export_texture_to_png(
+    resource_id: str,
+    output_path: str,
+    mip: int = 0,
+    slice: int = 0,
+    sample: int = 0,
+    depth_slice: int | None = None,
+    convert_srgb: bool = True,
+    quality: int = 95,
+) -> dict:
+    """
+    Export a texture directly to a PNG file for AI analysis.
+    
+    This tool bypasses Base64 encoding and creates an actual image file
+    that AI can analyze directly, improving efficiency and user experience.
+    
+    Args:
+        resource_id: The resource ID of the texture to export
+        output_path: Full path where the PNG file should be saved
+        mip: Mip level to export (default: 0)
+        slice: Array slice or cube face index (default: 0)
+        sample: MSAA sample index (default: 0)
+        depth_slice: For 3D textures, extract specific depth slice (default: None)
+        convert_srgb: Apply gamma correction if texture is sRGB (default: True)
+        quality: PNG compression quality (1-100, default: 95)
+        
+    Returns:
+        Dictionary with export results including file path and metadata
+    """
+    params = {
+        "resource_id": resource_id,
+        "output_path": output_path,
+        "mip": mip,
+        "slice": slice,
+        "sample": sample,
+        "convert_srgb": convert_srgb,
+        "quality": quality,
+    }
+    if depth_slice is not None:
+        params["depth_slice"] = depth_slice
+    return bridge.call("export_texture_to_png", params)
+
+
+@mcp.tool
+def export_texture_to_jpeg(
+    resource_id: str,
+    output_path: str,
+    mip: int = 0,
+    slice: int = 0,
+    sample: int = 0,
+    depth_slice: int | None = None,
+    convert_srgb: bool = True,
+    quality: int = 90,
+) -> dict:
+    """
+    Export a texture directly to a JPEG file for quick preview.
+    
+    JPEG format provides smaller file sizes suitable for previews
+    and sharing, though it loses alpha channel information.
+    
+    Args:
+        resource_id: The resource ID of the texture to export
+        output_path: Full path where the JPEG file should be saved
+        mip: Mip level to export (default: 0)
+        slice: Array slice or cube face index (default: 0)
+        sample: MSAA sample index (default: 0)
+        depth_slice: For 3D textures, extract specific depth slice (default: None)
+        convert_srgb: Apply gamma correction if texture is sRGB (default: True)
+        quality: JPEG compression quality (1-100, default: 90)
+        
+    Returns:
+        Dictionary with export results including file path and metadata
+    """
+    params = {
+        "resource_id": resource_id,
+        "output_path": output_path,
+        "mip": mip,
+        "slice": slice,
+        "sample": sample,
+        "convert_srgb": convert_srgb,
+        "quality": quality,
+    }
+    if depth_slice is not None:
+        params["depth_slice"] = depth_slice
+    return bridge.call("export_texture_to_jpeg", params)
+
+
+@mcp.tool
+def get_texture_format_info(resource_id: str) -> dict:
+    """
+    Get detailed information about a texture's format for conversion decisions.
+    
+    This tool provides comprehensive format information to help determine
+    the best export approach and understand the source data characteristics.
+    
+    Args:
+        resource_id: The resource ID of the texture to analyze
+        
+    Returns:
+        Detailed format information including:
+        - Channel layout and bit depths
+        - Data type (float/integer/normalized)
+        - Color space (sRGB/linear)
+        - Compression information
+        - Conversion recommendations
+    """
+    return bridge.call("get_texture_format_info", {"resource_id": resource_id})
+
+
+@mcp.tool
+def analyze_texture(
+    resource_id: str,
+    mip: int = 0,
+    slice: int = 0,
+    sample: int = 0,
+    depth_slice: int | None = None,
+    analysis_type: Literal["basic", "detailed", "full"] = "basic",
+    export_image: bool = False,
+    output_dir: str | None = None,
+) -> dict:
+    """
+    Perform comprehensive texture analysis with optional image export.
+    
+    This tool combines format analysis with statistical information
+    and can optionally export visualization images for AI analysis.
+    
+    Args:
+        resource_id: The resource ID of the texture to analyze
+        mip: Mip level to analyze (default: 0)
+        slice: Array slice or cube face index (default: 0)
+        sample: MSAA sample index (default: 0)
+        depth_slice: For 3D textures, analyze specific depth slice (default: None)
+        analysis_type: Level of analysis detail ("basic", "detailed", "full")
+        export_image: Whether to export analysis visualization images (default: False)
+        output_dir: Directory for exported images (required if export_image=True)
+        
+    Returns:
+        Comprehensive analysis results including:
+        - Basic metadata (dimensions, format, size)
+        - Statistical analysis (histograms, color distribution)
+        - Quality metrics (entropy, contrast, brightness)
+        - Format compatibility information
+        - Optional: Paths to exported analysis images
+    """
+    params = {
+        "resource_id": resource_id,
+        "mip": mip,
+        "slice": slice,
+        "sample": sample,
+        "analysis_type": analysis_type,
+        "export_image": export_image,
+    }
+    if depth_slice is not None:
+        params["depth_slice"] = depth_slice
+    if export_image and output_dir:
+        params["output_dir"] = output_dir
+    return bridge.call("analyze_texture", params)
 
 
 @mcp.tool

@@ -3,10 +3,13 @@ Resource information service for RenderDoc.
 """
 
 import base64
+import os
+from pathlib import Path
 
 import renderdoc as rd
 
 from ..utils import Parsers
+from ..converters import TextureConverter, TextureFormat
 
 
 class ResourceService:
@@ -15,6 +18,7 @@ class ResourceService:
     def __init__(self, ctx, invoke_fn):
         self.ctx = ctx
         self._invoke = invoke_fn
+        self._converter = TextureConverter()
 
     def _find_texture_by_id(self, controller, resource_id):
         """Find texture by resource ID"""
@@ -212,3 +216,4 @@ class ResourceService:
         if result["error"]:
             raise ValueError(result["error"])
         return result["data"]
+

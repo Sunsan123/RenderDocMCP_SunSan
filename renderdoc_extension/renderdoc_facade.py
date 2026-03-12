@@ -135,3 +135,40 @@ class RenderDocFacade:
     def get_pipeline_state(self, event_id):
         """Get full pipeline state at an event"""
         return self._pipeline.get_pipeline_state(event_id)
+
+    # ==================== Texture Export Operations ====================
+    
+    def export_texture_to_png(
+        self, resource_id, output_path, mip=0, slice=0, sample=0, 
+        depth_slice=None, convert_srgb=True, quality=95
+    ):
+        """Export texture directly to PNG file"""
+        # Delegate to resource service with export capability
+        return self._resource.export_texture_to_png(
+            resource_id, output_path, mip, slice, sample, 
+            depth_slice, convert_srgb, quality
+        )
+    
+    def export_texture_to_jpeg(
+        self, resource_id, output_path, mip=0, slice=0, sample=0,
+        depth_slice=None, convert_srgb=True, quality=90
+    ):
+        """Export texture directly to JPEG file"""
+        return self._resource.export_texture_to_jpeg(
+            resource_id, output_path, mip, slice, sample,
+            depth_slice, convert_srgb, quality
+        )
+    
+    def get_texture_format_info(self, resource_id):
+        """Get detailed format information for texture conversion decisions"""
+        return self._resource.get_texture_format_info(resource_id)
+    
+    def analyze_texture(
+        self, resource_id, mip=0, slice=0, sample=0, depth_slice=None,
+        analysis_type="basic", export_image=False, output_dir=None
+    ):
+        """Perform comprehensive texture analysis"""
+        return self._resource.analyze_texture(
+            resource_id, mip, slice, sample, depth_slice,
+            analysis_type, export_image, output_dir
+        )
